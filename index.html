@@ -1,0 +1,1012 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>February 2026 Bike Challenge</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Racing+Sans+One&family=Archivo:wght@300;400;600;700&display=swap');
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    :root {
+      --primary: #FFFFFF;
+      --secondary: #E0E0E0;
+      --accent: #00D4FF;
+      --dark: #0A0A0A;
+      --darker: #000000;
+      --light: #FFFFFF;
+      --gray: #B8B8B8;
+      --success: #00FF88;
+      --warning: #FFD700;
+      --ice-blue: #A8E6FF;
+      --frost: #E3F5FF;
+    }
+    
+    body {
+      font-family: 'Archivo', sans-serif;
+      background: var(--darker);
+      color: var(--light);
+      min-height: 100vh;
+      overflow-x: hidden;
+      position: relative;
+    }
+    
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: 
+        radial-gradient(circle at 20% 50%, rgba(168, 230, 255, 0.05) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%, rgba(0, 212, 255, 0.05) 0%, transparent 50%);
+      pointer-events: none;
+      z-index: 0;
+    }
+    
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 40px 20px;
+      position: relative;
+      z-index: 1;
+    }
+    
+    header {
+      text-align: center;
+      margin-bottom: 50px;
+      position: relative;
+    }
+    
+    h1 {
+      font-family: 'Racing Sans One', cursive;
+      font-size: clamp(2.5rem, 5vw, 4.5rem);
+      background: linear-gradient(135deg, var(--primary) 0%, var(--ice-blue) 50%, var(--accent) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 10px;
+      letter-spacing: 2px;
+      animation: glow 3s ease-in-out infinite;
+    }
+    
+    @keyframes glow {
+      0%, 100% { filter: drop-shadow(0 0 20px rgba(168, 230, 255, 0.4)); }
+      50% { filter: drop-shadow(0 0 40px rgba(168, 230, 255, 0.6)); }
+    }
+    
+    .subtitle {
+      font-size: 1.2rem;
+      color: var(--gray);
+      font-weight: 300;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+    }
+    
+    
+    .controls {
+      display: flex;
+      gap: 15px;
+      margin-bottom: 30px;
+      flex-wrap: wrap;
+    }
+    
+    .btn {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--ice-blue) 100%);
+      color: var(--dark);
+      border: none;
+      padding: 15px 30px;
+      border-radius: 10px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      box-shadow: 0 4px 15px rgba(168, 230, 255, 0.3);
+    }
+    
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 25px rgba(168, 230, 255, 0.5);
+    }
+    
+    .btn-secondary {
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
+      border: 2px solid var(--primary);
+      color: var(--primary);
+      box-shadow: 0 4px 15px rgba(168, 230, 255, 0.2);
+    }
+    
+    .btn-secondary:hover {
+      box-shadow: 0 6px 25px rgba(168, 230, 255, 0.4);
+      background: rgba(255, 255, 255, 0.1);
+    }
+    
+    .btn-small {
+      padding: 8px 16px;
+      font-size: 0.85rem;
+    }
+    
+    .participant-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+      gap: 25px;
+      margin-bottom: 40px;
+    }
+    
+    .participant-card {
+      background: rgba(255, 255, 255, 0.03);
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      border-radius: 20px;
+      padding: 25px;
+      backdrop-filter: blur(10px);
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .participant-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 4px;
+      background: linear-gradient(90deg, var(--primary) 0%, var(--ice-blue) 100%);
+    }
+    
+    .participant-card:hover {
+      transform: translateY(-5px);
+      border-color: var(--primary);
+      box-shadow: 0 10px 40px rgba(168, 230, 255, 0.3);
+    }
+    
+    .participant-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+    
+    .participant-name {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--accent);
+    }
+    
+    .participant-actions {
+      display: flex;
+      gap: 8px;
+    }
+    
+    .progress-info {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+    
+    .info-item {
+      background: rgba(0, 0, 0, 0.3);
+      padding: 12px;
+      border-radius: 10px;
+    }
+    
+    .info-label {
+      font-size: 0.8rem;
+      color: var(--gray);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 5px;
+    }
+    
+    .info-value {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--light);
+    }
+    
+    .goal-unit-badge {
+      display: inline-block;
+      background: rgba(0, 212, 255, 0.2);
+      color: var(--accent);
+      padding: 4px 10px;
+      border-radius: 5px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      margin-left: 5px;
+    }
+    
+    .progress-bar-container {
+      background: rgba(0, 0, 0, 0.5);
+      border-radius: 10px;
+      height: 30px;
+      overflow: hidden;
+      margin-bottom: 15px;
+      position: relative;
+    }
+    
+    .progress-bar {
+      height: 100%;
+      background: linear-gradient(90deg, var(--ice-blue) 0%, var(--accent) 100%);
+      transition: width 0.5s ease;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      padding-right: 10px;
+      font-weight: 700;
+      font-size: 0.9rem;
+      color: var(--dark);
+    }
+    
+    .status-badge {
+      display: inline-block;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    
+    .status-done {
+      background: var(--success);
+      color: var(--dark);
+    }
+    
+    .status-ontrack {
+      background: var(--warning);
+      color: var(--dark);
+    }
+    
+    .status-push {
+      background: var(--primary);
+      color: var(--dark);
+    }
+    
+    .log-entry {
+      margin-top: 15px;
+    }
+    
+    .log-entry-row {
+      display: grid;
+      grid-template-columns: 1fr auto auto;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    
+    .log-entry input[type="number"],
+    .log-entry input[type="date"] {
+      background: rgba(0, 0, 0, 0.5);
+      border: 2px solid rgba(255, 107, 53, 0.3);
+      border-radius: 10px;
+      padding: 12px;
+      color: var(--light);
+      font-size: 1rem;
+      transition: all 0.3s ease;
+    }
+    
+    .log-entry input:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
+    }
+    
+    .log-entry select {
+      background: rgba(0, 0, 0, 0.8);
+      border: 2px solid var(--primary);
+      border-radius: 10px;
+      padding: 12px;
+      color: var(--light);
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      min-width: 100px;
+    }
+    
+    .log-entry select:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
+    }
+    
+    .log-entry select option {
+      background: var(--dark);
+      color: var(--light);
+    }
+    
+    .log-entry button {
+      background: var(--accent);
+      color: var(--dark);
+      border: none;
+      padding: 12px 20px;
+      border-radius: 10px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      grid-column: span 3;
+      margin-top: 10px;
+    }
+    
+    .log-entry button:hover {
+      transform: scale(1.02);
+      box-shadow: 0 4px 15px rgba(0, 212, 255, 0.5);
+    }
+    
+    .photo-upload-container {
+      margin-top: 10px;
+    }
+    
+    .photo-upload-label {
+      display: inline-block;
+      background: rgba(0, 212, 255, 0.2);
+      border: 2px dashed var(--accent);
+      border-radius: 10px;
+      padding: 12px 20px;
+      color: var(--accent);
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+    
+    .photo-upload-label:hover {
+      background: rgba(0, 212, 255, 0.3);
+      border-color: var(--light);
+    }
+    
+    .photo-upload-input {
+      display: none;
+    }
+    
+    .photo-preview {
+      margin-top: 10px;
+      position: relative;
+      display: inline-block;
+    }
+    
+    .photo-preview img {
+      max-width: 100%;
+      max-height: 150px;
+      border-radius: 10px;
+      border: 2px solid var(--accent);
+    }
+    
+    .photo-preview-remove {
+      position: absolute;
+      top: -8px;
+      right: -8px;
+      background: var(--primary);
+      color: var(--light);
+      border: none;
+      border-radius: 50%;
+      width: 24px;
+      height: 24px;
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .recent-entries {
+      margin-top: 15px;
+      padding-top: 15px;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .recent-entries-title {
+      font-size: 0.85rem;
+      color: var(--gray);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 10px;
+    }
+    
+    .entry-item {
+      background: rgba(0, 0, 0, 0.3);
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 8px;
+    }
+    
+    .entry-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    
+    .entry-info {
+      display: flex;
+      gap: 15px;
+      align-items: center;
+    }
+    
+    .entry-distance {
+      color: var(--accent);
+      font-weight: 700;
+      font-size: 1.1rem;
+    }
+    
+    .entry-unit {
+      color: var(--secondary);
+      font-weight: 600;
+    }
+    
+    .entry-date {
+      color: var(--gray);
+      font-size: 0.8rem;
+    }
+    
+    .entry-actions {
+      display: flex;
+      gap: 5px;
+    }
+    
+    .entry-delete {
+      background: rgba(255, 107, 53, 0.3);
+      border: none;
+      color: var(--light);
+      padding: 4px 10px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 0.8rem;
+      transition: all 0.2s ease;
+    }
+    
+    .entry-delete:hover {
+      background: rgba(255, 107, 53, 0.6);
+    }
+    
+    .entry-photo {
+      margin-top: 8px;
+      cursor: pointer;
+    }
+    
+    .entry-photo img {
+      max-width: 100%;
+      max-height: 200px;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+    }
+    
+    .entry-photo img:hover {
+      transform: scale(1.02);
+      box-shadow: 0 4px 20px rgba(0, 212, 255, 0.4);
+    }
+    
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(10px);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      overflow-y: auto;
+    }
+    
+    .modal.active {
+      display: flex;
+    }
+    
+    .modal-content {
+      background: var(--dark);
+      border: 2px solid var(--primary);
+      border-radius: 20px;
+      padding: 40px;
+      max-width: 500px;
+      width: 100%;
+      box-shadow: 0 20px 60px rgba(168, 230, 255, 0.5);
+      margin: auto;
+    }
+    
+    .modal-content h2 {
+      font-family: 'Racing Sans One', cursive;
+      color: var(--accent);
+      margin-bottom: 20px;
+      font-size: 2rem;
+    }
+    
+    .modal-content label {
+      display: block;
+      color: var(--gray);
+      font-size: 0.9rem;
+      margin-bottom: 5px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    
+    .modal-content input,
+    .modal-content select {
+      width: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      border: 2px solid rgba(255, 107, 53, 0.3);
+      border-radius: 10px;
+      padding: 15px;
+      color: var(--light);
+      font-size: 1rem;
+      margin-bottom: 20px;
+    }
+    
+    .modal-content input:focus,
+    .modal-content select:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+    
+    .modal-content select option {
+      background: var(--dark);
+    }
+    
+    .modal-buttons {
+      display: flex;
+      gap: 15px;
+    }
+    
+    .photo-modal-content {
+      max-width: 90vw;
+      max-height: 90vh;
+      padding: 20px;
+    }
+    
+    .photo-modal-content img {
+      max-width: 100%;
+      max-height: 80vh;
+      border-radius: 10px;
+    }
+    
+    @media (max-width: 768px) {
+      .participant-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .log-entry-row {
+        grid-template-columns: 1fr;
+      }
+      
+      .log-entry button {
+        grid-column: span 1;
+      }
+      
+      .modal-content {
+        padding: 30px 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>FROZEN 540</h1>
+      <div class="subtitle">February 2026 Challenge</div>
+    </header>
+    
+    
+    <div class="controls">
+      <button type="button" class="btn" onclick="window.addParticipant()">+ Add Rider</button>
+      <button type="button" class="btn btn-secondary" onclick="window.resetData()">Reset All Data</button>
+    </div>
+    
+    <div class="participant-grid" id="participantGrid"></div>
+  </div>
+  
+  <div class="modal" id="addModal">
+    <div class="modal-content">
+      <h2 id="modalTitle">Add New Rider</h2>
+      <label>Name</label>
+      <input type="text" id="editName" placeholder="Rider Name">
+      <label>Goal</label>
+      <input type="number" id="editGoal" placeholder="Goal distance" value="540">
+      <label>Goal Unit</label>
+      <select id="editGoalUnit">
+        <option value="mi">Miles</option>
+        <option value="km">Kilometers</option>
+      </select>
+      <div class="modal-buttons">
+        <button type="button" class="btn" onclick="window.saveParticipantEdit()">Save</button>
+        <button type="button" class="btn btn-secondary" onclick="window.closeModal()">Cancel</button>
+      </div>
+    </div>
+  </div>
+  
+  <div class="modal" id="photoModal" onclick="window.closePhotoModal()">
+    <div class="modal-content photo-modal-content">
+      <img id="photoModalImg" src="" alt="Entry photo">
+    </div>
+  </div>
+  
+  <div class="modal" id="confirmModal">
+    <div class="modal-content">
+      <h2 id="confirmTitle">Confirm Action</h2>
+      <p id="confirmMessage" style="color: var(--gray); margin-bottom: 30px; line-height: 1.6;"></p>
+      <div class="modal-buttons">
+        <button type="button" class="btn" id="confirmYes">Yes, Delete</button>
+        <button type="button" class="btn btn-secondary" id="confirmNo">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const STORAGE_KEY = 'bike-challenge-participants';
+    let participants = [];
+    let editingParticipantIdx = -1;
+    let currentPhotoData = {};
+    
+    // Conversion rates
+    const METERS_TO_MILES = 1609.34;
+    const KM_TO_MILES = 0.621371;
+    const METERS_TO_KM = 1000;
+    
+    async function loadData() {
+      try {
+        const result = await window.storage.get(STORAGE_KEY);
+        if (result && result.value) {
+          participants = JSON.parse(result.value);
+        } else {
+          participants = [
+            { name: 'Alice', goal: 540, goalUnit: 'mi', entries: [] },
+            { name: 'Bob', goal: 540, goalUnit: 'mi', entries: [] },
+            { name: 'Charlie', goal: 540, goalUnit: 'mi', entries: [] }
+          ];
+          await saveData();
+        }
+      } catch (error) {
+        participants = [
+          { name: 'Alice', goal: 540, goalUnit: 'mi', entries: [] },
+          { name: 'Bob', goal: 540, goalUnit: 'mi', entries: [] },
+          { name: 'Charlie', goal: 540, goalUnit: 'mi', entries: [] }
+        ];
+      }
+      renderParticipants();
+    }
+    
+    async function saveData() {
+      try {
+        await window.storage.set(STORAGE_KEY, JSON.stringify(participants));
+      } catch (error) {
+        console.error('Failed to save:', error);
+      }
+    }
+    
+    function updateDaysLeft() {
+      const today = new Date();
+      const endOfFeb = new Date(2026, 1, 28);
+      return Math.max(0, Math.ceil((endOfFeb - today) / (1000 * 60 * 60 * 24)));
+    }
+    
+    function convertToGoalUnit(distance, unit, goalUnit) {
+      // First convert to miles as base unit
+      let inMiles;
+      if (unit === 'm') {
+        inMiles = distance / METERS_TO_MILES;
+      } else if (unit === 'km') {
+        inMiles = distance * KM_TO_MILES;
+      } else {
+        inMiles = distance;
+      }
+      
+      // Then convert to goal unit if needed
+      if (goalUnit === 'km') {
+        return inMiles / KM_TO_MILES;
+      }
+      return inMiles;
+    }
+    
+    function calculateTotal(entries, goalUnit) {
+      return entries.reduce((sum, entry) => {
+        const converted = convertToGoalUnit(entry.distance, entry.unit, goalUnit);
+        return sum + converted;
+      }, 0);
+    }
+    
+    function getStatus(total, goal) {
+      const percent = total / goal;
+      if (percent >= 1) return { text: '✓ DONE!', class: 'status-done' };
+      if (percent >= 0.5) return { text: 'On Track', class: 'status-ontrack' };
+      return { text: 'Needs Push', class: 'status-push' };
+    }
+    
+    function formatDate(isoString) {
+      const date = new Date(isoString);
+      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    }
+    
+    function getTodayDate() {
+      const today = new Date();
+      return today.toISOString().split('T')[0];
+    }
+    
+    function renderParticipants() {
+      const grid = document.getElementById('participantGrid');
+      grid.innerHTML = participants.map((p, idx) => {
+        const total = calculateTotal(p.entries, p.goalUnit || 'mi');
+        const remaining = Math.max(0, p.goal - total);
+        const percent = Math.min(100, (total / p.goal) * 100);
+        const status = getStatus(total, p.goal);
+        const daysLeft = updateDaysLeft();
+        const avgNeeded = daysLeft > 0 ? (remaining / daysLeft).toFixed(1) : 0;
+        
+        // Get last 5 entries sorted by date
+        const recentEntries = [...p.entries]
+          .sort((a, b) => new Date(b.date) - new Date(a.date))
+          .slice(0, 5);
+        
+        return `
+          <div class="participant-card">
+            <div class="participant-header">
+              <div class="participant-name">
+                ${p.name}
+                <span class="goal-unit-badge">${p.goalUnit || 'mi'}</span>
+              </div>
+              <div class="participant-actions">
+                <button type="button" class="btn btn-secondary btn-small btn-edit-participant" data-idx="${idx}">Edit</button>
+                <button type="button" class="btn btn-secondary btn-small btn-delete-participant" data-idx="${idx}">Delete</button>
+              </div>
+            </div>
+            <div class="progress-info">
+              <div class="info-item">
+                <div class="info-label">Total</div>
+                <div class="info-value">${total.toFixed(1)}</div>
+              </div>
+              <div class="info-item">
+                <div class="info-label">Remaining</div>
+                <div class="info-value">${remaining.toFixed(1)}</div>
+              </div>
+              <div class="info-item">
+                <div class="info-label">Goal</div>
+                <div class="info-value">${p.goal}</div>
+              </div>
+              <div class="info-item">
+                <div class="info-label">Daily Avg Needed</div>
+                <div class="info-value">${avgNeeded}</div>
+              </div>
+            </div>
+            <div class="progress-bar-container">
+              <div class="progress-bar" style="width: ${percent}%">${percent.toFixed(0)}%</div>
+            </div>
+            <div style="margin-bottom: 10px;">
+              <span class="status-badge ${status.class}">${status.text}</span>
+            </div>
+            <div class="log-entry">
+              <div class="log-entry-row">
+                <input type="date" id="date-${idx}" value="${getTodayDate()}" max="${getTodayDate()}">
+                <input type="number" step="0.1" placeholder="Distance" id="distance-${idx}">
+                <select id="unit-${idx}">
+                  <option value="mi">mi</option>
+                  <option value="km">km</option>
+                  <option value="m">m</option>
+                </select>
+              </div>
+              <div class="photo-upload-container">
+                <label class="photo-upload-label" for="photo-${idx}">
+                  📷 Add Photo (Optional)
+                </label>
+                <input type="file" class="photo-upload-input" id="photo-${idx}" accept="image/*" onchange="window.handlePhotoSelect(${idx}, event)">
+                <div id="photo-preview-${idx}"></div>
+              </div>
+              <button type="button" onclick="window.logDistance(${idx})">Log Entry</button>
+            </div>
+            ${recentEntries.length > 0 ? `
+              <div class="recent-entries">
+                <div class="recent-entries-title">Recent Entries</div>
+                ${recentEntries.map((entry) => {
+                  const actualIdx = p.entries.findIndex(e => e === entry);
+                  return `
+                    <div class="entry-item">
+                      <div class="entry-header">
+                        <div class="entry-info">
+                          <span class="entry-distance">${entry.distance.toFixed(1)}</span>
+                          <span class="entry-unit">${entry.unit}</span>
+                          <span class="entry-date">${formatDate(entry.date)}</span>
+                        </div>
+                        <div class="entry-actions">
+                          <button type="button" class="entry-delete btn-delete-entry" data-participant-idx="${idx}" data-entry-idx="${actualIdx}">Delete</button>
+                        </div>
+                      </div>
+                      ${entry.photo ? `
+                        <div class="entry-photo" onclick="window.showPhotoModal('${entry.photo}')">
+                          <img src="${entry.photo}" alt="Entry photo">
+                        </div>
+                      ` : ''}
+                    </div>
+                  `;
+                }).join('')}
+              </div>
+            ` : ''}
+          </div>
+        `;
+      }).join('');
+    }
+    
+    window.handlePhotoSelect = function(idx, event) {
+      const file = event.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          currentPhotoData[idx] = e.target.result;
+          const preview = document.getElementById(`photo-preview-${idx}`);
+          preview.innerHTML = `
+            <div class="photo-preview">
+              <img src="${e.target.result}" alt="Preview">
+              <button type="button" class="photo-preview-remove" onclick="window.removePhotoPreview(${idx})">×</button>
+            </div>
+          `;
+        };
+        reader.readAsDataURL(file);
+      }
+    };
+    
+    window.removePhotoPreview = function(idx) {
+      delete currentPhotoData[idx];
+      document.getElementById(`photo-preview-${idx}`).innerHTML = '';
+      document.getElementById(`photo-${idx}`).value = '';
+    };
+    
+    window.showPhotoModal = function(photoSrc) {
+      document.getElementById('photoModalImg').src = photoSrc;
+      document.getElementById('photoModal').classList.add('active');
+    };
+    
+    window.closePhotoModal = function() {
+      document.getElementById('photoModal').classList.remove('active');
+    };
+    
+    // Custom confirm function
+    function customConfirm(message) {
+      return new Promise((resolve) => {
+        document.getElementById('confirmMessage').textContent = message;
+        document.getElementById('confirmModal').classList.add('active');
+        
+        const yesBtn = document.getElementById('confirmYes');
+        const noBtn = document.getElementById('confirmNo');
+        
+        function handleYes() {
+          document.getElementById('confirmModal').classList.remove('active');
+          yesBtn.removeEventListener('click', handleYes);
+          noBtn.removeEventListener('click', handleNo);
+          resolve(true);
+        }
+        
+        function handleNo() {
+          document.getElementById('confirmModal').classList.remove('active');
+          yesBtn.removeEventListener('click', handleYes);
+          noBtn.removeEventListener('click', handleNo);
+          resolve(false);
+        }
+        
+        yesBtn.addEventListener('click', handleYes);
+        noBtn.addEventListener('click', handleNo);
+      });
+    }
+    
+    window.logDistance = async function(idx) {
+      const dateInput = document.getElementById(`date-${idx}`);
+      const distanceInput = document.getElementById(`distance-${idx}`);
+      const unitSelect = document.getElementById(`unit-${idx}`);
+      const distance = parseFloat(distanceInput.value);
+      const unit = unitSelect.value;
+      const date = dateInput.value;
+      
+      if (distance && distance > 0 && date) {
+        const entry = {
+          distance: distance,
+          unit: unit,
+          date: new Date(date + 'T12:00:00').toISOString()
+        };
+        
+        if (currentPhotoData[idx]) {
+          entry.photo = currentPhotoData[idx];
+        }
+        
+        participants[idx].entries.push(entry);
+        await saveData();
+        renderParticipants();
+        distanceInput.value = '';
+        dateInput.value = getTodayDate();
+        delete currentPhotoData[idx];
+      }
+    };
+    
+    window.addParticipant = function() {
+      editingParticipantIdx = -1;
+      document.getElementById('modalTitle').textContent = 'Add New Rider';
+      document.getElementById('editName').value = '';
+      document.getElementById('editGoal').value = '540';
+      document.getElementById('editGoalUnit').value = 'mi';
+      document.getElementById('addModal').classList.add('active');
+    };
+    
+    window.closeModal = function() {
+      document.getElementById('addModal').classList.remove('active');
+      editingParticipantIdx = -1;
+    };
+    
+    window.saveParticipantEdit = async function() {
+      const name = document.getElementById('editName').value.trim();
+      const goal = parseFloat(document.getElementById('editGoal').value);
+      const goalUnit = document.getElementById('editGoalUnit').value;
+      
+      if (name && goal > 0) {
+        if (editingParticipantIdx >= 0) {
+          // Editing existing
+          participants[editingParticipantIdx].name = name;
+          participants[editingParticipantIdx].goal = goal;
+          participants[editingParticipantIdx].goalUnit = goalUnit;
+        } else {
+          // Adding new
+          participants.push({ name, goal, goalUnit, entries: [] });
+        }
+        await saveData();
+        renderParticipants();
+        window.closeModal();
+      }
+    };
+    
+    window.resetData = async function() {
+      if (confirm('Are you sure you want to reset all data? This cannot be undone.')) {
+        participants = [];
+        await saveData();
+        renderParticipants();
+      }
+    };
+    
+    // Event delegation for dynamically created buttons
+    document.addEventListener('click', async function(e) {
+      // Edit participant button
+      if (e.target.classList.contains('btn-edit-participant')) {
+        const idx = parseInt(e.target.dataset.idx);
+        editingParticipantIdx = idx;
+        const p = participants[idx];
+        document.getElementById('modalTitle').textContent = 'Edit Rider';
+        document.getElementById('editName').value = p.name;
+        document.getElementById('editGoal').value = p.goal;
+        document.getElementById('editGoalUnit').value = p.goalUnit || 'mi';
+        document.getElementById('addModal').classList.add('active');
+      }
+      
+      // Delete participant button
+      if (e.target.classList.contains('btn-delete-participant')) {
+        const idx = parseInt(e.target.dataset.idx);
+        const shouldDelete = await customConfirm(`Delete ${participants[idx].name} and all their entries? This cannot be undone.`);
+        
+        if (shouldDelete) {
+          participants.splice(idx, 1);
+          await saveData();
+          renderParticipants();
+        }
+      }
+      
+      // Delete entry button
+      if (e.target.classList.contains('btn-delete-entry')) {
+        const participantIdx = parseInt(e.target.dataset.participantIdx);
+        const entryIdx = parseInt(e.target.dataset.entryIdx);
+        const shouldDelete = await customConfirm('Delete this entry? This cannot be undone.');
+        
+        if (shouldDelete) {
+          participants[participantIdx].entries.splice(entryIdx, 1);
+          await saveData();
+          renderParticipants();
+        }
+      }
+    });
+    
+    loadData();
+  </script>
+</body>
+</html>
