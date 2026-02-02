@@ -141,16 +141,10 @@
     
     .participant-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
       gap: 25px;
       margin-bottom: 40px;
       max-width: 100%;
-    }
-    
-    @media (min-width: 1400px) {
-      .participant-grid {
-        grid-template-columns: repeat(2, 1fr);
-      }
     }
     
     .participant-card {
@@ -616,6 +610,12 @@
       <button type="button" class="btn btn-secondary" onclick="window.resetData()">Reset All Data</button>
     </div>
     
+    <div id="riderSelector" style="margin-bottom: 30px; display: flex; align-items: center;">
+      <label style="color: var(--gray); font-size: 1rem; margin-right: 15px; text-transform: uppercase; letter-spacing: 1px;">Select Rider:</label>
+      <select id="riderDropdown" onchange="window.selectRider()" style="background: rgba(0, 0, 0, 0.8); border: 2px solid var(--primary); border-radius: 10px; padding: 12px 20px; color: var(--light); font-size: 1rem; font-weight: 600; cursor: pointer; min-width: 200px;">
+      </select>
+    </div>
+    
     <div class="participant-grid" id="participantGrid"></div>
   </div>
   
@@ -676,6 +676,7 @@
     let participants = [];
     let editingParticipantIdx = -1;
     let currentPhotoData = {};
+    let selectedRiderIdx = 0;
     
     // Conversion rates
     const METERS_TO_MILES = 1609.34;
@@ -691,9 +692,22 @@
         } else {
           participants = [];
         }
+        updateRiderDropdown();
         renderParticipants();
       });
     }
+    
+    function updateRiderDropdown() {
+      const dropdown = document.getElementById('riderDropdown');
+      dropdown.innerHTML = participants.map((p, idx) => 
+        `<option value="${idx}" ${idx === selectedRiderIdx ? 'selected' : ''}>${p.name}</option>`
+      ).join('');
+    }
+    
+    window.selectRider = function() {
+      selectedRiderIdx = parseInt(document.getElementById('riderDropdown').value);
+      renderParticipants();
+    };
     
     function saveData() {
       participantsRef.set(participants).catch(error => {
@@ -758,28 +772,38 @@
     
     function renderParticipants() {
       const grid = document.getElementById('participantGrid');
-      grid.innerHTML = participants.map((p, idx) => {
-        // Ensure entries is always an array
-        if (!p.entries) {
-          p.entries = [];
-        }
-        if (!Array.isArray(p.entries)) {
-          p.entries = Object.values(p.entries || {});
-        }
-        
-        const total = calculateTotal(p.entries, p.goalUnit || 'mi');
-        const remaining = Math.max(0, p.goal - total);
-        const percent = Math.min(100, (total / p.goal) * 100);
-        const status = getStatus(total, p.goal);
-        const daysLeft = updateDaysLeft();
-        const avgNeeded = daysLeft > 0 ? (remaining / daysLeft).toFixed(1) : 0;
-        
-        // Get last 5 entries sorted by date
-        const recentEntries = [...p.entries]
-          .sort((a, b) => new Date(b.date) - new Date(a.date))
-          .slice(0, 5);
-        
-        return `
+      
+      // Always show single rider view
+      if (participants.length === 0) {
+        grid.innerHTML = '<p style="color: var(--gray); text-align: center; padding: 40px;">No riders yet. Click "+ Add Rider" to get started!</p>';
+        return;
+      }
+      
+      // Show only the selected rider
+      const p = participants[selectedRiderIdx];
+      const idx = selectedRiderIdx;
+      
+      // Ensure entries is always an array
+      if (!p.entries) {
+        p.entries = [];
+      }
+      if (!Array.isArray(p.entries)) {
+        p.entries = Object.values(p.entries || {});
+      }
+      
+      const total = calculateTotal(p.entries, p.goalUnit || 'mi');
+      const remaining = Math.max(0, p.goal - total);
+      const percent = Math.min(100, (total / p.goal) * 100);
+      const status = getStatus(total, p.goal);
+      const daysLeft = updateDaysLeft();
+      const avgNeeded = daysLeft > 0 ? (remaining / daysLeft).toFixed(1) : 0;
+      
+      // Get last 5 entries sorted by date
+      const recentEntries = [...p.entries]
+        .sort((a, b) => new Date(b.date) - new Date(a.date))
+        .slice(0, 5);
+      
+      grid.innerHTML = `
           <div class="participant-card">
             <div class="participant-header">
               <div class="participant-name">
@@ -863,22 +887,57 @@
             ` : ''}
           </div>
         `;
-      }).join('');
     }
     
     window.handlePhotoSelect = function(idx, event) {
       const file = event.target.files[0];
       if (file) {
+        // Compress image before storing
         const reader = new FileReader();
         reader.onload = (e) => {
-          currentPhotoData[idx] = e.target.result;
-          const preview = document.getElementById(`photo-preview-${idx}`);
-          preview.innerHTML = `
-            <div class="photo-preview">
-              <img src="${e.target.result}" alt="Preview">
-              <button type="button" class="photo-preview-remove" onclick="window.removePhotoPreview(${idx})">×</button>
-            </div>
-          `;
+          const img = new Image();
+          img.onload = () => {
+            // Create canvas for compression
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            
+            // Max dimensions
+            const MAX_WIDTH = 800;
+            const MAX_HEIGHT = 800;
+            
+            let width = img.width;
+            let height = img.height;
+            
+            // Calculate new dimensions
+            if (width > height) {
+              if (width > MAX_WIDTH) {
+                height *= MAX_WIDTH / width;
+                width = MAX_WIDTH;
+              }
+            } else {
+              if (height > MAX_HEIGHT) {
+                width *= MAX_HEIGHT / height;
+                height = MAX_HEIGHT;
+              }
+            }
+            
+            canvas.width = width;
+            canvas.height = height;
+            
+            // Draw and compress
+            ctx.drawImage(img, 0, 0, width, height);
+            const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.7); // 70% quality
+            
+            currentPhotoData[idx] = compressedDataUrl;
+            const preview = document.getElementById(`photo-preview-${idx}`);
+            preview.innerHTML = `
+              <div class="photo-preview">
+                <img src="${compressedDataUrl}" alt="Preview">
+                <button type="button" class="photo-preview-remove" onclick="window.removePhotoPreview(${idx})">×</button>
+              </div>
+            `;
+          };
+          img.src = e.target.result;
         };
         reader.readAsDataURL(file);
       }
