@@ -141,9 +141,16 @@
     
     .participant-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
       gap: 25px;
       margin-bottom: 40px;
+      max-width: 100%;
+    }
+    
+    @media (min-width: 1400px) {
+      .participant-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
     }
     
     .participant-card {
@@ -282,7 +289,7 @@
     
     .log-entry-row {
       display: grid;
-      grid-template-columns: 1fr auto auto;
+      grid-template-columns: 180px 1fr 100px;
       gap: 10px;
       margin-bottom: 10px;
     }
@@ -290,12 +297,13 @@
     .log-entry input[type="number"],
     .log-entry input[type="date"] {
       background: rgba(0, 0, 0, 0.5);
-      border: 2px solid rgba(255, 107, 53, 0.3);
+      border: 2px solid rgba(255, 255, 255, 0.3);
       border-radius: 10px;
       padding: 12px;
       color: var(--light);
       font-size: 1rem;
       transition: all 0.3s ease;
+      min-width: 0;
     }
     
     .log-entry input:focus {
@@ -576,13 +584,13 @@
       border-radius: 10px;
     }
     
-    @media (max-width: 768px) {
+    @media (max-width: 900px) {
       .participant-grid {
         grid-template-columns: 1fr;
       }
       
       .log-entry-row {
-        grid-template-columns: 1fr;
+        grid-template-columns: 1fr 1fr 100px;
       }
       
       .log-entry button {
@@ -648,18 +656,17 @@
   </div>
 
   <script>
-    // FIREBASE CONFIGURATION
-    // Replace these values with your own Firebase project config
+    // Firebase Configuration
     const firebaseConfig = {
-    apiKey: "AIzaSyDQCky5fGvP4NMvXJtws8UhGQtgZOUoUB0",
-    authDomain: "frozen540-771ae.firebaseapp.com",
-    databaseURL: "https://frozen540-771ae-default-rtdb.firebaseio.com",
-    projectId: "frozen540-771ae",
-    storageBucket: "frozen540-771ae.firebasestorage.app",
-    messagingSenderId: "689990518969",
-    appId: "1:689990518969:web:f7a18f1ce32c2262d63368",
-    measurementId: "G-ZFZS4WG1QS"
-   };
+      apiKey: "AIzaSyDQCky5fGvP4NMvXJtws8UhGQtgZOUoUB0",
+      authDomain: "frozen540-771ae.firebaseapp.com",
+      databaseURL: "https://frozen540-771ae-default-rtdb.firebaseio.com",
+      projectId: "frozen540-771ae",
+      storageBucket: "frozen540-771ae.firebasestorage.app",
+      messagingSenderId: "689990518969",
+      appId: "1:689990518969:web:f7a18f1ce32c2262d63368",
+      measurementId: "G-ZFZS4WG1QS"
+    };
     
     // Initialize Firebase
     firebase.initializeApp(firebaseConfig);
@@ -682,12 +689,7 @@
         if (data) {
           participants = data;
         } else {
-          participants = [
-            { name: 'Alice', goal: 540, goalUnit: 'mi', entries: [] },
-            { name: 'Bob', goal: 540, goalUnit: 'mi', entries: [] },
-            { name: 'Charlie', goal: 540, goalUnit: 'mi', entries: [] }
-          ];
-          saveData();
+          participants = [];
         }
         renderParticipants();
       });
@@ -725,7 +727,13 @@
     }
     
     function calculateTotal(entries, goalUnit) {
+      if (!entries || !Array.isArray(entries)) {
+        return 0;
+      }
       return entries.reduce((sum, entry) => {
+        if (!entry || !entry.distance || !entry.unit) {
+          return sum;
+        }
         const converted = convertToGoalUnit(entry.distance, entry.unit, goalUnit);
         return sum + converted;
       }, 0);
@@ -751,6 +759,14 @@
     function renderParticipants() {
       const grid = document.getElementById('participantGrid');
       grid.innerHTML = participants.map((p, idx) => {
+        // Ensure entries is always an array
+        if (!p.entries) {
+          p.entries = [];
+        }
+        if (!Array.isArray(p.entries)) {
+          p.entries = Object.values(p.entries || {});
+        }
+        
         const total = calculateTotal(p.entries, p.goalUnit || 'mi');
         const remaining = Math.max(0, p.goal - total);
         const percent = Math.min(100, (total / p.goal) * 100);
@@ -964,6 +980,10 @@
           participants[editingParticipantIdx].name = name;
           participants[editingParticipantIdx].goal = goal;
           participants[editingParticipantIdx].goalUnit = goalUnit;
+          // Ensure entries exists
+          if (!participants[editingParticipantIdx].entries) {
+            participants[editingParticipantIdx].entries = [];
+          }
         } else {
           // Adding new
           participants.push({ name, goal, goalUnit, entries: [] });
