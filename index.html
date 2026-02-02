@@ -463,9 +463,37 @@
       font-size: 0.8rem;
     }
     
+    .entry-duration {
+      color: var(--accent);
+      font-size: 0.8rem;
+      margin-left: 10px;
+    }
+    
+    .entry-speed {
+      color: var(--ice-blue);
+      font-size: 0.8rem;
+      margin-left: 10px;
+      font-weight: 600;
+    }
+    
     .entry-actions {
       display: flex;
       gap: 5px;
+    }
+    
+    .entry-edit {
+      background: rgba(0, 212, 255, 0.3);
+      border: none;
+      color: var(--light);
+      padding: 4px 10px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 0.8rem;
+      transition: all 0.2s ease;
+    }
+    
+    .entry-edit:hover {
+      background: rgba(0, 212, 255, 0.6);
     }
     
     .entry-delete {
@@ -677,6 +705,28 @@
         <option value="m">Meters</option>
       </select>
       
+      <label style="display: flex; align-items: center; margin-bottom: 10px;">
+        <input type="checkbox" id="logEntryHasDuration" onchange="window.toggleDurationFields()" style="margin-right: 10px; width: 20px; height: 20px;">
+        <span>Add duration (optional)</span>
+      </label>
+      
+      <div id="durationFields" style="display: none; margin-bottom: 20px;">
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
+          <div>
+            <label style="font-size: 0.9rem; color: var(--gray); margin-bottom: 5px; display: block;">Hours</label>
+            <input type="number" id="logEntryHours" min="0" placeholder="0" style="width: 100%; background: rgba(255, 255, 255, 0.1); border: 2px solid rgba(255, 255, 255, 0.4); border-radius: 10px; padding: 14px; color: var(--light); font-size: 1.1rem; text-align: center;">
+          </div>
+          <div>
+            <label style="font-size: 0.9rem; color: var(--gray); margin-bottom: 5px; display: block;">Minutes</label>
+            <input type="number" id="logEntryMinutes" min="0" max="59" placeholder="0" style="width: 100%; background: rgba(255, 255, 255, 0.1); border: 2px solid rgba(255, 255, 255, 0.4); border-radius: 10px; padding: 14px; color: var(--light); font-size: 1.1rem; text-align: center;">
+          </div>
+          <div>
+            <label style="font-size: 0.9rem; color: var(--gray); margin-bottom: 5px; display: block;">Seconds</label>
+            <input type="number" id="logEntrySeconds" min="0" max="59" placeholder="0" style="width: 100%; background: rgba(255, 255, 255, 0.1); border: 2px solid rgba(255, 255, 255, 0.4); border-radius: 10px; padding: 14px; color: var(--light); font-size: 1.1rem; text-align: center;">
+          </div>
+        </div>
+      </div>
+      
       <div class="photo-upload-container" style="margin-bottom: 20px;">
         <label class="photo-upload-label" for="logEntryPhoto">
           📷 Add Photo (Optional)
@@ -802,6 +852,32 @@
       return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
     }
     
+    function formatDuration(seconds) {
+      const hours = Math.floor(seconds / 3600);
+      const minutes = Math.floor((seconds % 3600) / 60);
+      const secs = seconds % 60;
+      
+      if (hours > 0) {
+        return `${hours}h ${minutes}m ${secs}s`;
+      } else if (minutes > 0) {
+        return `${minutes}m ${secs}s`;
+      } else {
+        return `${secs}s`;
+      }
+    }
+    
+    window.toggleRecentEntries = function(idx) {
+      const list = document.getElementById(`entries-list-${idx}`);
+      const toggle = document.getElementById(`entries-toggle-${idx}`);
+      if (list.style.display === 'none') {
+        list.style.display = 'block';
+        toggle.textContent = '▲';
+      } else {
+        list.style.display = 'none';
+        toggle.textContent = '▼';
+      }
+    };
+    
     function getTodayDate() {
       const today = new Date();
       return today.toISOString().split('T')[0];
@@ -834,6 +910,16 @@
       const status = getStatus(total, p.goal);
       const daysLeft = updateDaysLeft();
       const avgNeeded = daysLeft > 0 ? (remaining / daysLeft).toFixed(1) : 0;
+      
+      // Calculate overall average speed from entries with duration
+      const entriesWithDuration = p.entries.filter(e => e.duration);
+      let totalMiles = 0;
+      let totalHours = 0;
+      entriesWithDuration.forEach(e => {
+        totalMiles += convertToGoalUnit(e.distance, e.unit, 'mi');
+        totalHours += e.duration / 3600;
+      });
+      const avgSpeed = entriesWithDuration.length > 0 ? (totalMiles / totalHours).toFixed(1) : null;
       
       // Get last 5 entries sorted by date
       const recentEntries = [...p.entries]
@@ -869,6 +955,12 @@
                 <div class="info-label">Daily Avg Needed</div>
                 <div class="info-value">${avgNeeded}</div>
               </div>
+              ${avgSpeed ? `
+              <div class="info-item">
+                <div class="info-label">Avg Speed</div>
+                <div class="info-value">${avgSpeed} mph</div>
+              </div>
+              ` : ''}
             </div>
             <div class="progress-bar-container">
               <div class="progress-bar" style="width: ${percent}%">${percent.toFixed(0)}%</div>
@@ -882,9 +974,14 @@
             
             ${recentEntries.length > 0 ? `
               <div class="recent-entries">
-                <div class="recent-entries-title">Recent Entries</div>
+                <div class="recent-entries-title" onclick="window.toggleRecentEntries(${idx})" style="cursor: pointer; display: flex; justify-content: space-between; align-items: center;">
+                  <span>Recent Entries (${recentEntries.length})</span>
+                  <span id="entries-toggle-${idx}">▼</span>
+                </div>
+                <div id="entries-list-${idx}" style="display: none;">
                 ${recentEntries.map((entry) => {
                   const actualIdx = p.entries.findIndex(e => e === entry);
+                  const avgSpeed = entry.duration ? (convertToGoalUnit(entry.distance, entry.unit, 'mi') / (entry.duration / 3600)).toFixed(1) : null;
                   return `
                     <div class="entry-item">
                       <div class="entry-header">
@@ -892,8 +989,11 @@
                           <span class="entry-distance">${entry.distance.toFixed(1)}</span>
                           <span class="entry-unit">${entry.unit}</span>
                           <span class="entry-date">${formatDate(entry.date)}</span>
+                          ${entry.duration ? `<span class="entry-duration">${formatDuration(entry.duration)}</span>` : ''}
+                          ${avgSpeed ? `<span class="entry-speed">${avgSpeed} mph</span>` : ''}
                         </div>
                         <div class="entry-actions">
+                          <button type="button" class="entry-edit" onclick="window.editEntry(${idx}, ${actualIdx})">Edit</button>
                           <button type="button" class="entry-delete btn-delete-entry" data-participant-idx="${idx}" data-entry-idx="${actualIdx}">Delete</button>
                         </div>
                         ${entry.photo ? `
@@ -904,6 +1004,7 @@
                       </div>
                   `;
                 }).join('')}
+                </div>
               </div>
             ` : ''}
           </div>
@@ -1121,6 +1222,57 @@
       document.getElementById('logEntryPhoto').value = '';
     };
     
+    let editingEntryIdx = -1;
+    
+    window.toggleDurationFields = function() {
+      const checkbox = document.getElementById('logEntryHasDuration');
+      const fields = document.getElementById('durationFields');
+      fields.style.display = checkbox.checked ? 'block' : 'none';
+    };
+    
+    window.editEntry = function(participantIdx, entryIdx) {
+      currentLogEntryIdx = participantIdx;
+      editingEntryIdx = entryIdx;
+      const entry = participants[participantIdx].entries[entryIdx];
+      
+      // Populate modal with existing data
+      const date = new Date(entry.date);
+      const dateStr = date.toISOString().split('T')[0];
+      document.getElementById('logEntryDate').value = dateStr;
+      document.getElementById('logEntryDistance').value = entry.distance;
+      document.getElementById('logEntryUnit').value = entry.unit;
+      
+      // Handle duration
+      if (entry.duration) {
+        document.getElementById('logEntryHasDuration').checked = true;
+        toggleDurationFields();
+        const hours = Math.floor(entry.duration / 3600);
+        const minutes = Math.floor((entry.duration % 3600) / 60);
+        const seconds = entry.duration % 60;
+        document.getElementById('logEntryHours').value = hours;
+        document.getElementById('logEntryMinutes').value = minutes;
+        document.getElementById('logEntrySeconds').value = seconds;
+      } else {
+        document.getElementById('logEntryHasDuration').checked = false;
+        toggleDurationFields();
+      }
+      
+      // Handle photo
+      logEntryPhotoData = entry.photo || null;
+      if (entry.photo) {
+        document.getElementById('logEntryPhotoPreview').innerHTML = `
+          <div class="photo-preview">
+            <img src="${entry.photo}" alt="Preview">
+            <button type="button" class="photo-preview-remove" onclick="window.removeLogEntryPhotoPreview()">×</button>
+          </div>
+        `;
+      } else {
+        document.getElementById('logEntryPhotoPreview').innerHTML = '';
+      }
+      
+      document.getElementById('logEntryModal').classList.add('active');
+    };
+    
     window.saveLogEntry = function() {
       const date = document.getElementById('logEntryDate').value;
       const distance = parseFloat(document.getElementById('logEntryDistance').value);
@@ -1133,14 +1285,33 @@
           date: new Date(date + 'T12:00:00').toISOString()
         };
         
+        // Add duration if checkbox is checked
+        const hasDuration = document.getElementById('logEntryHasDuration').checked;
+        if (hasDuration) {
+          const hours = parseInt(document.getElementById('logEntryHours').value) || 0;
+          const minutes = parseInt(document.getElementById('logEntryMinutes').value) || 0;
+          const seconds = parseInt(document.getElementById('logEntrySeconds').value) || 0;
+          const totalSeconds = (hours * 3600) + (minutes * 60) + seconds;
+          if (totalSeconds > 0) {
+            entry.duration = totalSeconds;
+          }
+        }
+        
         if (logEntryPhotoData) {
           entry.photo = logEntryPhotoData;
         }
         
-        participants[currentLogEntryIdx].entries.push(entry);
+        // Either update existing entry or add new one
+        if (editingEntryIdx >= 0) {
+          participants[currentLogEntryIdx].entries[editingEntryIdx] = entry;
+        } else {
+          participants[currentLogEntryIdx].entries.push(entry);
+        }
+        
         saveData();
         renderParticipants();
         closeLogEntryModal();
+        editingEntryIdx = -1;
       } else {
         alert('Please enter a valid distance and date.');
       }
