@@ -3,7 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>February 2026 Bike Challenge</title>
+  <title>FROZEN 540 Challenge</title>
+  
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+  
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Racing+Sans+One&family=Archivo:wght@300;400;600;700&display=swap');
     
@@ -643,7 +648,24 @@
   </div>
 
   <script>
-    const STORAGE_KEY = 'bike-challenge-participants';
+    // FIREBASE CONFIGURATION
+    // Replace these values with your own Firebase project config
+    const firebaseConfig = {
+    apiKey: "AIzaSyDQCky5fGvP4NMvXJtws8UhGQtgZOUoUB0",
+    authDomain: "frozen540-771ae.firebaseapp.com",
+    databaseURL: "https://frozen540-771ae-default-rtdb.firebaseio.com",
+    projectId: "frozen540-771ae",
+    storageBucket: "frozen540-771ae.firebasestorage.app",
+    messagingSenderId: "689990518969",
+    appId: "1:689990518969:web:f7a18f1ce32c2262d63368",
+    measurementId: "G-ZFZS4WG1QS"
+   };
+    
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
+    const participantsRef = database.ref('participants');
+    
     let participants = [];
     let editingParticipantIdx = -1;
     let currentPhotoData = {};
@@ -653,35 +675,29 @@
     const KM_TO_MILES = 0.621371;
     const METERS_TO_KM = 1000;
     
-    async function loadData() {
-      try {
-        const result = await window.storage.get(STORAGE_KEY);
-        if (result && result.value) {
-          participants = JSON.parse(result.value);
+    function loadData() {
+      // Listen for real-time updates from Firebase
+      participantsRef.on('value', (snapshot) => {
+        const data = snapshot.val();
+        if (data) {
+          participants = data;
         } else {
           participants = [
             { name: 'Alice', goal: 540, goalUnit: 'mi', entries: [] },
             { name: 'Bob', goal: 540, goalUnit: 'mi', entries: [] },
             { name: 'Charlie', goal: 540, goalUnit: 'mi', entries: [] }
           ];
-          await saveData();
+          saveData();
         }
-      } catch (error) {
-        participants = [
-          { name: 'Alice', goal: 540, goalUnit: 'mi', entries: [] },
-          { name: 'Bob', goal: 540, goalUnit: 'mi', entries: [] },
-          { name: 'Charlie', goal: 540, goalUnit: 'mi', entries: [] }
-        ];
-      }
-      renderParticipants();
+        renderParticipants();
+      });
     }
     
-    async function saveData() {
-      try {
-        await window.storage.set(STORAGE_KEY, JSON.stringify(participants));
-      } catch (error) {
+    function saveData() {
+      participantsRef.set(participants).catch(error => {
         console.error('Failed to save:', error);
-      }
+        alert('Failed to save data. Please check your internet connection.');
+      });
     }
     
     function updateDaysLeft() {
@@ -895,7 +911,7 @@
       });
     }
     
-    window.logDistance = async function(idx) {
+    window.logDistance = function(idx) {
       const dateInput = document.getElementById(`date-${idx}`);
       const distanceInput = document.getElementById(`distance-${idx}`);
       const unitSelect = document.getElementById(`unit-${idx}`);
@@ -915,7 +931,7 @@
         }
         
         participants[idx].entries.push(entry);
-        await saveData();
+        saveData();
         renderParticipants();
         distanceInput.value = '';
         dateInput.value = getTodayDate();
@@ -937,7 +953,7 @@
       editingParticipantIdx = -1;
     };
     
-    window.saveParticipantEdit = async function() {
+    window.saveParticipantEdit = function() {
       const name = document.getElementById('editName').value.trim();
       const goal = parseFloat(document.getElementById('editGoal').value);
       const goalUnit = document.getElementById('editGoalUnit').value;
@@ -952,22 +968,22 @@
           // Adding new
           participants.push({ name, goal, goalUnit, entries: [] });
         }
-        await saveData();
+        saveData();
         renderParticipants();
         window.closeModal();
       }
     };
     
-    window.resetData = async function() {
+    window.resetData = function() {
       if (confirm('Are you sure you want to reset all data? This cannot be undone.')) {
         participants = [];
-        await saveData();
+        saveData();
         renderParticipants();
       }
     };
     
     // Event delegation for dynamically created buttons
-    document.addEventListener('click', async function(e) {
+    document.addEventListener('click', function(e) {
       // Edit participant button
       if (e.target.classList.contains('btn-edit-participant')) {
         const idx = parseInt(e.target.dataset.idx);
@@ -983,26 +999,26 @@
       // Delete participant button
       if (e.target.classList.contains('btn-delete-participant')) {
         const idx = parseInt(e.target.dataset.idx);
-        const shouldDelete = await customConfirm(`Delete ${participants[idx].name} and all their entries? This cannot be undone.`);
-        
-        if (shouldDelete) {
-          participants.splice(idx, 1);
-          await saveData();
-          renderParticipants();
-        }
+        customConfirm(`Delete ${participants[idx].name} and all their entries? This cannot be undone.`).then(shouldDelete => {
+          if (shouldDelete) {
+            participants.splice(idx, 1);
+            saveData();
+            renderParticipants();
+          }
+        });
       }
       
       // Delete entry button
       if (e.target.classList.contains('btn-delete-entry')) {
         const participantIdx = parseInt(e.target.dataset.participantIdx);
         const entryIdx = parseInt(e.target.dataset.entryIdx);
-        const shouldDelete = await customConfirm('Delete this entry? This cannot be undone.');
-        
-        if (shouldDelete) {
-          participants[participantIdx].entries.splice(entryIdx, 1);
-          await saveData();
-          renderParticipants();
-        }
+        customConfirm('Delete this entry? This cannot be undone.').then(shouldDelete => {
+          if (shouldDelete) {
+            participants[participantIdx].entries.splice(entryIdx, 1);
+            saveData();
+            renderParticipants();
+          }
+        });
       }
     });
     
