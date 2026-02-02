@@ -483,21 +483,20 @@
       background: rgba(255, 107, 53, 0.6);
     }
     
-    .entry-photo {
-      margin-top: 8px;
-      cursor: pointer;
-    }
-    
-    .entry-photo img {
-      max-width: 100%;
-      max-height: 200px;
+    .entry-photo-icon {
+      background: rgba(0, 212, 255, 0.2);
+      border: 2px solid var(--accent);
       border-radius: 8px;
+      padding: 8px 12px;
+      font-size: 1.2rem;
+      cursor: pointer;
       transition: all 0.3s ease;
+      margin-left: 10px;
     }
     
-    .entry-photo img:hover {
-      transform: scale(1.02);
-      box-shadow: 0 4px 20px rgba(0, 212, 255, 0.4);
+    .entry-photo-icon:hover {
+      background: rgba(0, 212, 255, 0.4);
+      transform: scale(1.1);
     }
     
     .modal {
@@ -659,6 +658,37 @@
       <div class="modal-buttons">
         <button type="button" class="btn" id="confirmYes">Yes, Delete</button>
         <button type="button" class="btn btn-secondary" id="confirmNo">Cancel</button>
+      </div>
+    </div>
+  </div>
+  
+  <div class="modal" id="logEntryModal">
+    <div class="modal-content">
+      <h2>Log Ride</h2>
+      <label>Date</label>
+      <input type="date" id="logEntryDate" value="" max="" style="width: 100%; background: rgba(255, 255, 255, 0.1); border: 2px solid rgba(255, 255, 255, 0.4); border-radius: 10px; padding: 14px; color: var(--light); font-size: 1.1rem; margin-bottom: 20px;">
+      
+      <label>Distance</label>
+      <input type="number" step="0.1" id="logEntryDistance" placeholder="Enter distance" style="width: 100%; background: rgba(255, 255, 255, 0.1); border: 2px solid rgba(255, 255, 255, 0.4); border-radius: 10px; padding: 14px; color: var(--light); font-size: 1.5rem; font-weight: 600; margin-bottom: 20px; text-align: center;">
+      
+      <label>Unit</label>
+      <select id="logEntryUnit" style="width: 100%; background: rgba(0, 0, 0, 0.8); border: 2px solid var(--primary); border-radius: 10px; padding: 14px; color: var(--light); font-size: 1.1rem; margin-bottom: 20px;">
+        <option value="mi">Miles</option>
+        <option value="km">Kilometers</option>
+        <option value="m">Meters</option>
+      </select>
+      
+      <div class="photo-upload-container" style="margin-bottom: 20px;">
+        <label class="photo-upload-label" for="logEntryPhoto">
+          📷 Add Photo (Optional)
+        </label>
+        <input type="file" class="photo-upload-input" id="logEntryPhoto" accept="image/*" onchange="window.handleLogEntryPhotoSelect(event)">
+        <div id="logEntryPhotoPreview"></div>
+      </div>
+      
+      <div class="modal-buttons">
+        <button type="button" class="btn" onclick="window.saveLogEntry()">Save Entry</button>
+        <button type="button" class="btn btn-secondary" onclick="window.closeLogEntryModal()">Cancel</button>
       </div>
     </div>
   </div>
@@ -847,25 +877,10 @@
             <div style="margin-bottom: 10px;">
               <span class="status-badge ${status.class}">${status.text}</span>
             </div>
-            <div class="log-entry">
-              <div class="log-entry-row">
-                <input type="date" id="date-${idx}" value="${getTodayDate()}" max="${getTodayDate()}">
-                <input type="number" step="0.1" placeholder="Enter distance (e.g. 12.5)" id="distance-${idx}">
-                <select id="unit-${idx}">
-                  <option value="mi">mi</option>
-                  <option value="km">km</option>
-                  <option value="m">m</option>
-                </select>
-              </div>
-              <div class="photo-upload-container">
-                <label class="photo-upload-label" for="photo-${idx}">
-                  📷 Add Photo (Optional)
-                </label>
-                <input type="file" class="photo-upload-input" id="photo-${idx}" accept="image/*" onchange="window.handlePhotoSelect(${idx}, event)">
-                <div id="photo-preview-${idx}"></div>
-              </div>
-              <button type="button" onclick="window.logDistance(${idx})">Log Entry</button>
-            </div>
+            <button type="button" class="btn" style="width: 100%; margin-top: 20px;" onclick="window.openLogEntryModal(${idx})">
+              + Log Ride
+            </button>
+            
             ${recentEntries.length > 0 ? `
               <div class="recent-entries">
                 <div class="recent-entries-title">Recent Entries</div>
@@ -882,13 +897,12 @@
                         <div class="entry-actions">
                           <button type="button" class="entry-delete btn-delete-entry" data-participant-idx="${idx}" data-entry-idx="${actualIdx}">Delete</button>
                         </div>
+                        ${entry.photo ? `
+                          <button type="button" class="entry-photo-icon" onclick="window.showPhotoModal('${entry.photo}')" title="View photo">
+                            📷
+                          </button>
+                        ` : ''}
                       </div>
-                      ${entry.photo ? `
-                        <div class="entry-photo" onclick="window.showPhotoModal('${entry.photo}')">
-                          <img src="${entry.photo}" alt="Entry photo">
-                        </div>
-                      ` : ''}
-                    </div>
                   `;
                 }).join('')}
               </div>
@@ -1034,6 +1048,103 @@
     window.closeModal = function() {
       document.getElementById('addModal').classList.remove('active');
       editingParticipantIdx = -1;
+    };
+    
+    let currentLogEntryIdx = -1;
+    let logEntryPhotoData = null;
+    
+    window.openLogEntryModal = function(idx) {
+      currentLogEntryIdx = idx;
+      logEntryPhotoData = null;
+      const today = getTodayDate();
+      document.getElementById('logEntryDate').value = today;
+      document.getElementById('logEntryDate').max = today;
+      document.getElementById('logEntryDistance').value = '';
+      document.getElementById('logEntryUnit').value = participants[idx].goalUnit || 'mi';
+      document.getElementById('logEntryPhotoPreview').innerHTML = '';
+      document.getElementById('logEntryModal').classList.add('active');
+      setTimeout(() => {
+        document.getElementById('logEntryDistance').focus();
+      }, 100);
+    };
+    
+    window.closeLogEntryModal = function() {
+      document.getElementById('logEntryModal').classList.remove('active');
+      currentLogEntryIdx = -1;
+      logEntryPhotoData = null;
+    };
+    
+    window.handleLogEntryPhotoSelect = function(event) {
+      const file = event.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const img = new Image();
+          img.onload = () => {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            const MAX_WIDTH = 800;
+            const MAX_HEIGHT = 800;
+            let width = img.width;
+            let height = img.height;
+            if (width > height) {
+              if (width > MAX_WIDTH) {
+                height *= MAX_WIDTH / width;
+                width = MAX_WIDTH;
+              }
+            } else {
+              if (height > MAX_HEIGHT) {
+                width *= MAX_HEIGHT / height;
+                height = MAX_HEIGHT;
+              }
+            }
+            canvas.width = width;
+            canvas.height = height;
+            ctx.drawImage(img, 0, 0, width, height);
+            const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.7);
+            logEntryPhotoData = compressedDataUrl;
+            document.getElementById('logEntryPhotoPreview').innerHTML = `
+              <div class="photo-preview">
+                <img src="${compressedDataUrl}" alt="Preview">
+                <button type="button" class="photo-preview-remove" onclick="window.removeLogEntryPhotoPreview()">×</button>
+              </div>
+            `;
+          };
+          img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+      }
+    };
+    
+    window.removeLogEntryPhotoPreview = function() {
+      logEntryPhotoData = null;
+      document.getElementById('logEntryPhotoPreview').innerHTML = '';
+      document.getElementById('logEntryPhoto').value = '';
+    };
+    
+    window.saveLogEntry = function() {
+      const date = document.getElementById('logEntryDate').value;
+      const distance = parseFloat(document.getElementById('logEntryDistance').value);
+      const unit = document.getElementById('logEntryUnit').value;
+      
+      if (distance && distance > 0 && date) {
+        const entry = {
+          distance: distance,
+          unit: unit,
+          date: new Date(date + 'T12:00:00').toISOString()
+        };
+        
+        if (logEntryPhotoData) {
+          entry.photo = logEntryPhotoData;
+        }
+        
+        participants[currentLogEntryIdx].entries.push(entry);
+        saveData();
+        renderParticipants();
+        closeLogEntryModal();
+      } else {
+        alert('Please enter a valid distance and date.');
+      }
     };
     
     window.saveParticipantEdit = function() {
