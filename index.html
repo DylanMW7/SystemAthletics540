@@ -290,19 +290,27 @@
     
     .log-entry input[type="number"],
     .log-entry input[type="date"] {
-      background: rgba(0, 0, 0, 0.5);
-      border: 2px solid rgba(255, 255, 255, 0.3);
+      background: rgba(255, 255, 255, 0.1);
+      border: 2px solid rgba(255, 255, 255, 0.4);
       border-radius: 10px;
-      padding: 12px;
+      padding: 14px;
       color: var(--light);
-      font-size: 1rem;
+      font-size: 1.1rem;
+      font-weight: 500;
       transition: all 0.3s ease;
       min-width: 0;
+    }
+    
+    .log-entry input::placeholder {
+      color: rgba(255, 255, 255, 0.5);
+      font-weight: 400;
     }
     
     .log-entry input:focus {
       outline: none;
       border-color: var(--accent);
+      background: rgba(255, 255, 255, 0.15);
+      box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.2);
       box-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
     }
     
@@ -842,7 +850,7 @@
             <div class="log-entry">
               <div class="log-entry-row">
                 <input type="date" id="date-${idx}" value="${getTodayDate()}" max="${getTodayDate()}">
-                <input type="number" step="0.1" placeholder="Distance" id="distance-${idx}">
+                <input type="number" step="0.1" placeholder="Enter distance (e.g. 12.5)" id="distance-${idx}">
                 <select id="unit-${idx}">
                   <option value="mi">mi</option>
                   <option value="km">km</option>
